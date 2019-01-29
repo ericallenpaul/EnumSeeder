@@ -206,22 +206,28 @@ new seeding methods. I added a class called DbContextFactory.
 It inherits from IDesignTimeDbContextFactory
 
 ```csharp
-public class DbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+public ApplicationDbContext CreateDbContext(string[] args)
 {
-    public ApplicationDbContext CreateDbContext(string[] args)
-    {
-        var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
-        builder.UseSqlServer(
-            @"Server=(localdb)\MSSQLLocalDB;Database=EnumSeeder;Trusted_Connection=True;MultipleActiveResultSets=true");
 
-        //get the dbContext
-        var context = new ApplicationDbContext(builder.Options);
+    var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
+    builder.UseSqlServer(
+        @"Server=(localdb)\MSSQLLocalDB;Database=EnumSeeder;Trusted_Connection=True;MultipleActiveResultSets=true");
 
-        //add in our enum
-        EnumHelper.SeedEnumData<DepartmentEnum, Department>(context.Departments, context);
+    //get the dbContext
+    var context = new ApplicationDbContext(builder.Options);
 
-        return context;
-    }
+    //uncomment this line if you need to debug this code
+    //then choose yes and create a new instance of visual
+    //studio to step through the code
+    //Debugger.Launch();
+
+    //add in our enum data
+    EnumHelper.SeedEnumData<DepartmentEnum, Department>(context.Departments, context);
+
+    //save all of the enum changes
+    context.SaveChanges();
+
+    return context;
 }
 ```
 
@@ -246,10 +252,51 @@ Now we can add our initial migration.
 
 ![Add Migration](add_migration.bmp)
 
-Next we'll call "update-database"
+Next we'll call "update-database" twice.
 
 ![Update Database](update-database.bmp)
 
+The second call is necessary because the first time through
+it won't have created the new "Department" table.
+The second run will say it did nothing but it will populate
+the table with the values from the enum. 
 
+There are a few gotchas to this approach: 
+
+- Runnning update-database twice when there is a new enum 
+is a bit goofy. Might be fixable if you can get the create table process to somehow 
+happen before the code that inserts the data.
+
+- Checking to see if the database/table exists by 
+using an exception is slow. Also may be fixed with a 
+little more research in how to do `if database exists` 
+and `if table exists` using something besides an exception.
+DbConext does provide a method for checking if the database 
+exists, but not a table (in a generic way) as far as I 
+can see. I stuck with the exception because it seemed to 
+be more universal despite being a bit slow.
+
+
+
+I do love code first and it solves one of the biggest biz-dev 
+headaches, namely keeping databases in sync between developers. 
+But it also somewhat promotes the idea that you have to know 
+much about the database or how it works. It is getting better,
+and many of the old school
+I do think that may be an acheiveable goal someday, but in 
+the meantime
+
+Finally, It's important to note that there are other ways
+to solve this problem. It really comes down to what you
+find acceptable in your database.
+
+1. [Classes with string constants](https://codereview.stackexchange.com/questions/154676/storing-enum-values-as-strings-in-db)
+2. [Enum class instead of enum](https://docs.microsoft.com/en-us/dotnet/standard/microservices-architecture/microservice-ddd-cqrs-patterns/enumeration-classes-over-enum-types)
+3. [.Net Core value conversions](https://docs.microsoft.com/en-us/ef/core/modeling/value-conversions)
+
+Each of these has similar challenges with value conversions 
+being prehaps the best alternative that requires little 
+cusomization -- Provided you don't mind storing the text 
+values in the database.
 
 

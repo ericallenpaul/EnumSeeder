@@ -14,11 +14,6 @@ namespace EnumSeeder.Service
             where TData : EnumBase<TEnum>
             where TEnum : struct
         {
-
-            var enumItemtest = Activator.CreateInstance<TData>();
-
-            var dbset = context.Set<DepartmentEnum>();
-
             List<int> existingItemIds = new List<int>();
 
             //get a list of existing IDs
