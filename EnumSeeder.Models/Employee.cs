@@ -1,12 +1,19 @@
 ﻿using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EnumSeeder.Models
 {
     public enum Department{
+
+        [Description("Sales")]
         Sales = 1,
+
+        [Description("Customer Service")]
         CustomerService = 2,
+
+        [Description("Technical Support")]
         TechnicalSupport = 3
     }
 

@@ -15,6 +15,11 @@ namespace EnumSeeder.Service
 
         }
 
+        public DbSet<Employee> Employees { get; set; }
+
+        public DbSet<DepartmentEnum> Departments { get; set; }
+
+
         protected internal virtual void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -22,4 +27,4 @@ namespace EnumSeeder.Service
 
 
     }
-    }
+}
