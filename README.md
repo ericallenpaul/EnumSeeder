@@ -119,8 +119,8 @@ public class DepartmentEnum : EnumBase<Department>
 ```
 
 I have added the "Table" attribute to this class because 
-that makes more sense in the context of the database
-than a table called DepartmentEnum.
+the name `Department` makes more sense than a table 
+called `DepartmentEnum`.
 
 Now we need to add some code to bring it all together.
 In my service project I add a helper class to do 
@@ -197,7 +197,6 @@ be launched and can't have its own connection string.
 You may have seen this error before when you accidentally
 set a class file to launch.
 
-
 ![Launchclass](launchclass.png)
 
 The IDesignTimeDbContextFactory is our work-around
@@ -243,7 +242,9 @@ EnumHelper.SeedEnumData<DepartmentEnum, Department>(context.Departments, context
 EnumHelper.SeedEnumData<ENUM_CLASS_NAME, ENUM>(context.ENUM, DBCONTEXT);
 ```
 We will need one of these lines for each enum we add to 
-the project. 
+the project. Once this line is added however, it should never
+be necessary to do anything but just change the actual enum
+code.
 
 At this point all we need to do is switch to the 
 service project in the package manager console and set 
@@ -260,6 +261,33 @@ The second call is necessary because the first time through
 it won't have created the new "Department" table.
 The second run will say it did nothing but it will populate
 the table with the values from the enum. 
+
+At this point we have the new Department table created and
+its polulated with the data from the enum.
+Now we can move on to the final problem: How do we get
+this data into our migrations script.
+
+**Script-Migration**  
+One of the big advanteges of code first is that you can 
+generate a SQL script that can be used to update your
+actual database (staging, qa, production etc.). We
+do this by using the `script-migration` command.
+This script performs a check ahains the __EfMigrationsHistory
+table to determine if a migration needs to be applied.
+It's also pretty easy to flatten the migrations back out
+if you find yourself with too many. 
+Unfortunately none of the data that we just added will ever
+make it's way to anything but our local database.
+You could change your connection string and run 
+the `update-database` against another server, but I prefer
+to have all of my chnages scripted out. It makes it easy
+for any DBA to review and also makes it easy to hand
+off the responsibility for these changes.
+
+
+
+
+
 
 There are a few gotchas to this approach: 
 

@@ -4,6 +4,7 @@ using System.Text;
 using EnumSeeder.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace EnumSeeder.Service
 {
@@ -12,7 +13,7 @@ namespace EnumSeeder.Service
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-
+            
         }
 
         public DbSet<Employee> Employees { get; set; }
@@ -24,6 +25,11 @@ namespace EnumSeeder.Service
         {
 
         }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+            => options
+                .ReplaceService<IMigrationsSqlGenerator, CustomMigrationsSqlGenerator>();
+
 
 
     }

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnumSeeder.Service.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20190129145754_InitialCreate")]
+    [Migration("20190130203237_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -5,6 +5,7 @@ using System.Text;
 using EnumSeeder.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace EnumSeeder.Service
 {
@@ -14,8 +15,9 @@ namespace EnumSeeder.Service
         {
 
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            builder.UseSqlServer(
-                @"Server=(localdb)\MSSQLLocalDB;Database=EnumSeeder;Trusted_Connection=True;MultipleActiveResultSets=true");
+            builder
+                .UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=EnumSeeder;Trusted_Connection=True;MultipleActiveResultSets=true")
+                .ReplaceService<IMigrationsSqlGenerator, CustomMigrationsSqlGenerator>();
 
             //get the dbContext
             var context = new ApplicationDbContext(builder.Options);
@@ -23,7 +25,7 @@ namespace EnumSeeder.Service
             //uncomment this line if you need to debug this code
             //then choose yes and create a new instance of visual
             //studio to step through the code
-            Debugger.Launch();
+            //Debugger.Launch();
 
             //add in our enum data
             EnumHelper.SeedEnumData<DepartmentEnum, Department>(context.Departments, context);
