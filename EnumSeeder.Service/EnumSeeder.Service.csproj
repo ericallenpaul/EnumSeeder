@@ -5,6 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20190131191413_department-lookup-table.cs" />
+    <Compile Remove="Migrations\20190131194857_department-lookup-table.cs" />
+    <Compile Remove="Migrations\20190131204007_department-lookup-table.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\EnumSeeder.Models\EnumSeeder.Models.csproj" />
   </ItemGroup>
 

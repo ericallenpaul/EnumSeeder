@@ -19,12 +19,14 @@ namespace EnumSeeder.Service
 
         public DbSet<DepartmentEnum> Departments { get; set; }
         
-        protected internal virtual void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<DepartmentEnum>().HasData(
-                new DepartmentEnum { Id = 1, Name = "Sales", Description = "Sales", Deleted = false},
-                new DepartmentEnum { Id = 2, Name = "Customer Service", Description = "Customer Service", Deleted = false },
-                new DepartmentEnum { Id = 3, Name = "TechnicalSupport", Description = "Technical Support", Deleted = false }
+                new DepartmentEnum() { Id = 1, Name = "Sales", Description = "Sales", Deleted = false },
+                new DepartmentEnum() { Id = 2, Name = "Customer Service", Description = "Customer Service", Deleted = false },
+                new DepartmentEnum() { Id = 3, Name = "TechnicalSupport", Description = "Technical Support", Deleted = false }
             );
         }
     }
