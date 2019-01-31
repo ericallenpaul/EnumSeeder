@@ -57,6 +57,8 @@ namespace EnumSeeder.Service
                 {
                     items.Add(enumItem);
                 }
+
+                
             }
         }
 
@@ -67,5 +69,30 @@ namespace EnumSeeder.Service
             var attribute = type.GetField(enumItem.ToString()).GetCustomAttributes(typeof(DescriptionAttribute), false).Cast<DescriptionAttribute>().FirstOrDefault();
             return attribute == null ? string.Empty : attribute.Description;
         }
+
+        public string GetEnumSQL(string TableName, string Id, string Name, string Description)
+        { StringBuilder builder = new StringBuilder();
+            builder
+                .Append($"If NOT EXISTS(SELECT Id FROM {TableName} WHERE Id = {Id})")
+                .Append("BEGIN")
+                .Append($"INSERT INTO {TableName}")
+                .Append("(")
+                .Append("")
+                .Append("[Id]")
+                .Append(",[Name]")
+                .Append(",[Description]")
+                .Append(")")
+                .Append("VALUES")
+                .Append("(")
+                .Append($"{Id}")
+                .Append("")
+                .Append($",'{Name}'")
+                .Append($",'{Description}'")
+                .Append(")")
+                .Append("END");
+
+            return builder.ToString();
+        }
+
     }
 }

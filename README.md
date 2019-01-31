@@ -285,7 +285,7 @@ for any DBA to review and also makes it easy to hand
 off the responsibility for these changes.
 
 
-
+![Enum Migration](enumMigration.bmp)
 
 
 

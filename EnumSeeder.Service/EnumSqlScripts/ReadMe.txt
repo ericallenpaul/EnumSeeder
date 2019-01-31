@@ -1,0 +1,1 @@
+﻿This directory will store all SQL scripts for handling enum data
