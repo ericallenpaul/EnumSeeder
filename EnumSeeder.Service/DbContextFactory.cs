@@ -21,14 +21,10 @@ namespace EnumSeeder.Service
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
             builder
                 .UseSqlServer(@"Server=(localdb)\MSSQLLocalDB;Database=EnumSeeder;Trusted_Connection=True;MultipleActiveResultSets=true");
-
             
-
             //get the dbContext
             var context = new ApplicationDbContext(builder.Options);
-
             
-
             return context;
         }
     }

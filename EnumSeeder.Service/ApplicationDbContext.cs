@@ -13,7 +13,6 @@ namespace EnumSeeder.Service
 {
     public class ApplicationDbContext : IdentityDbContext<AppUser>
     {
-
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options){}
 
         public DbSet<Employee> Employees { get; set; }
@@ -23,12 +22,10 @@ namespace EnumSeeder.Service
         protected internal virtual void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<DepartmentEnum>().HasData(
-                new DepartmentEnum { Id = 1, Name = "Sales", Description = "Sales" },
-                new DepartmentEnum { Id = 2, Name = "Customer Service", Description = "Customer Service" },
-                new DepartmentEnum { Id = 3, Name = "TechnicalSupport", Description = "Technical Support" }
+                new DepartmentEnum { Id = 1, Name = "Sales", Description = "Sales", Deleted = false},
+                new DepartmentEnum { Id = 2, Name = "Customer Service", Description = "Customer Service", Deleted = false },
+                new DepartmentEnum { Id = 3, Name = "TechnicalSupport", Description = "Technical Support", Deleted = false }
             );
-
         }
-
     }
 }
