@@ -18,5 +18,7 @@ namespace EnumSeeder.Models
 
         [MaxLength(100)]
         public virtual string Description { get; set; }
+
+        public virtual bool Deleted { get; set; } = false;
     }
 }

@@ -30,10 +30,15 @@ custom migration and some insert statements, but now if the
 enum needs to change you will likely have more than one place 
 to change the code.
 
-Fortunately with just a little bit of code you can create 
-something that is a lot more "code-first-like" where all you
-need to do is change the enum and everything else will
-just fall in line.
+Fortunately with just a little bit of code you can create
+and populate a look up table that corresponds to the enum. 
+
+My original atempt at this was to make it work so changing 
+the enum was all you need to do. The lookup table would 
+automatically update to reflect any additions or deletions.
+I ran into too many issues, primarily: how do I get the data into 
+the "migration" script. I had to admit defeat for the moment
+and settle for having to change the enum code in two places.
 
 So let's walk through it.
 I have 3 projects in my example, a Web API project, a models 
@@ -102,6 +107,8 @@ public class EnumBase<TEnum> where TEnum : struct
 
     [MaxLength(100)]
     public virtual string Description { get; set; }
+
+    public virtual bool Deleted { get; set; } = false;
 }
 ```
 
@@ -121,6 +128,7 @@ public class DepartmentEnum : EnumBase<Department>
 I have added the "Table" attribute to this class because 
 the name `Department` makes more sense than a table 
 called `DepartmentEnum`.
+
 
 Now we need to add some code to bring it all together.
 In my service project I add a helper class to do 

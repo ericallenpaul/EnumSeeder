@@ -57,7 +57,8 @@ namespace EnumSeeder.Service.Migrations
                 {
                     Id = table.Column<int>(nullable: false),
                     Name = table.Column<string>(maxLength: 100, nullable: false),
-                    Description = table.Column<string>(maxLength: 100, nullable: true)
+                    Description = table.Column<string>(maxLength: 100, nullable: true),
+                    Deleted = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {

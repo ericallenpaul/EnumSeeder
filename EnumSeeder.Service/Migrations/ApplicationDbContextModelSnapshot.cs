@@ -82,6 +82,8 @@ namespace EnumSeeder.Service.Migrations
                 {
                     b.Property<int>("Id");
 
+                    b.Property<bool>("Deleted");
+
                     b.Property<string>("Description")
                         .HasMaxLength(100);
 

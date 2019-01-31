@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnumSeeder.Service.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20190130203237_InitialCreate")]
+    [Migration("20190131141722_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -83,6 +83,8 @@ namespace EnumSeeder.Service.Migrations
             modelBuilder.Entity("EnumSeeder.Models.DepartmentEnum", b =>
                 {
                     b.Property<int>("Id");
+
+                    b.Property<bool>("Deleted");
 
                     b.Property<string>("Description")
                         .HasMaxLength(100);
