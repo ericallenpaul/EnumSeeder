@@ -16,7 +16,7 @@ namespace EnumSeeder.Service
             //uncomment this line if you need to debug this code
             //then choose yes and create a new instance of visual
             //studio to step through the code
-            Debugger.Launch();
+            //Debugger.Launch();
 
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
             builder

@@ -9,7 +9,7 @@ namespace EnumSeeder.Models
     public class EnumBase<TEnum> where TEnum : struct
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public virtual int Id { get; set; }
 
         [Required]
