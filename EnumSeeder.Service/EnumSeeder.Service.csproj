@@ -8,6 +8,14 @@
     <Compile Remove="Migrations\20190131191413_department-lookup-table.cs" />
     <Compile Remove="Migrations\20190131194857_department-lookup-table.cs" />
     <Compile Remove="Migrations\20190131204007_department-lookup-table.cs" />
+    <Compile Remove="Migrations\20190131215952_department-lookup-table.cs" />
+    <Compile Remove="Migrations\20190201212931_department-lookup-table.cs" />
+    <Compile Remove="Migrations\20190201213118_department-lookup-table.cs" />
+    <Compile Remove="Migrations\20190201213613_department-lookup-table.cs" />
+    <Compile Remove="Migrations\20190201215519_department-lookup-table.cs" />
+    <Compile Remove="Migrations\20190201215956_department-lookup-table.cs" />
+    <Compile Remove="Migrations\20190201220406_department-lookup-table.cs" />
+    <Compile Remove="Migrations\20190201221755_department-lookup-table.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -96,29 +96,6 @@ namespace EnumSeeder.Service.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Department");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Deleted = false,
-                            Description = "Sales",
-                            Name = "Sales"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Deleted = false,
-                            Description = "Customer Service",
-                            Name = "Customer Service"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Deleted = false,
-                            Description = "Technical Support",
-                            Name = "TechnicalSupport"
-                        });
                 });
 
             modelBuilder.Entity("EnumSeeder.Models.Employee", b =>

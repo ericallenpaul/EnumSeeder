@@ -82,7 +82,7 @@ namespace EnumSeeder.API
             app.UseExceptionHandler("/error/500");
             app.UseMvc();
             app.UseStaticFiles();
-            env.ConfigureNLog("nlog.config");
+            //env.ConfigureNLog("nlog.config");
             LoggerFactory.AddNLog();
             app.AddNLogWeb();
 
