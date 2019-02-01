@@ -24,35 +24,14 @@ namespace EnumSeeder.Service
         {
             base.OnModelCreating(modelBuilder);
 
+            //uncomment this line if you need to debug this code
+            //then choose yes and create a new instance of visual
+            //studio to step through the code
             //Debugger.Launch();
 
+            //Seed Enums
             SeedEnum<DepartmentEnum>(typeof(Department), modelBuilder);
-
-            //var query = Assembly.GetExecutingAssembly()
-            //    .GetTypes()
-            //    .Where(t => t.IsEnum && t.Namespace == "EnumSeeder.Models");
-
-            //foreach (Type t in query)
-            //{
-            //    Console.WriteLine(t.FullName);
-            //}
-
-            //foreach (var assemblyName in Assembly.GetExecutingAssembly().GetReferencedAssemblies())
-            //{
-            //    Assembly assembly = Assembly.Load(assemblyName);
-            //    foreach (var type in assembly.GetTypes())
-            //    {
-            //        Console.WriteLine(type.Name);
-            //    }
-            //}
-
-
-
-            //modelBuilder.Entity<DepartmentEnum>().HasData(
-            //    new DepartmentEnum() { Id = 1, Name = "Sales", Description = "Sales", Deleted = false },
-            //    new DepartmentEnum() { Id = 2, Name = "Customer Service", Description = "Customer Service", Deleted = false },
-            //    new DepartmentEnum() { Id = 3, Name = "TechnicalSupport", Description = "Technical Support", Deleted = false }
-            //);
+            
         }
 
         public void SeedEnum<T>(Type enumToParse, ModelBuilder mb) where T : class

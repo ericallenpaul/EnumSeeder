@@ -33,13 +33,6 @@ to change the code.
 Fortunately with just a little bit of code you can create
 and populate a look up table that corresponds to the enum. 
 
-My original atempt at this was to make it work so changing 
-the enum was all you need to do. The lookup table would 
-automatically update to reflect any additions or deletions.
-I ran into too many issues, primarily: how do I get the data into 
-the "migration" script. I had to admit defeat for the moment
-and settle for having to change the enum code in two places.
-
 So let's walk through it.
 I have 3 projects in my example, a Web API project, a models 
 project and a service project.
@@ -98,7 +91,7 @@ Next, in the models project we'll add a base class for all of the enums to inher
 public class EnumBase<TEnum> where TEnum : struct
 {
     [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.None)]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public virtual int Id { get; set; }
 
     [Required]
@@ -129,62 +122,56 @@ I have added the "Table" attribute to this class because
 the name `Department` makes more sense than a table 
 called `DepartmentEnum`.
 
+Now we need to add our DBContext. You'll notice that I'm using 
+`IdentityDbContext<AppUser>` instead of plain old DbContext.
+This will allow me to access the .Net Core Identity services 
+at some point in the future if I need them. `AppUser` is
+just a class I defined and the way I can customize an individual 
+user account using the `IdentityFramerwork`. Feel free to use
+plain old `DbContext` if you don't think you'll ever need
+to have authenticated users. 
 
-Now we need to add some code to bring it all together.
-In my service project I add a helper class to do 
-all of the work extracting and processing the enum.
+My AppUser class looks like this:
 
-```csharp
-public class EnumHelper
-{
-    public static void SeedEnumData<TData, TEnum>(DbSet<TData> items, ApplicationDbContext context)
-        where TData : EnumBase<TEnum>
-        where TEnum : struct
+    public class AppUser : IdentityUser
     {
-        var primaryEnumType = typeof(TEnum);
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public virtual int AppUser_ID { get; set; }
 
-        if (!primaryEnumType.IsEnum)
-            throw new Exception(string.Format("The type '{0}' must be of type enum", primaryEnumType.AssemblyQualifiedName));
+        [DisplayName("First Name")]
+        public virtual string FirstName { get; set; }
 
-        var enumType = Enum.GetUnderlyingType(primaryEnumType);
+        [DisplayName("Last Name")]
+        public virtual string LastName { get; set; }
 
-        if (enumType == typeof(long) || enumType == typeof(ulong) || enumType == typeof(uint))
-            throw new Exception();
+    }
 
-        foreach (TEnum enumValue in Enum.GetValues(primaryEnumType))
+My I named my DbContext class `ApplicationDbContext` it looks
+like this:
+```csharp
+    public class ApplicationDbContext : IdentityDbContext<AppUser>
+    {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options){}
+
+        public DbSet<Employee> Employees { get; set; }
+
+        public DbSet<DepartmentEnum> Departments { get; set; }
+        
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            var enumItem = Activator.CreateInstance<TData>();
+            //remove this line if you ise plain old DbContext
+            base.OnModelCreating(modelBuilder);
 
-            enumItem.Id = (int)Convert.ChangeType(enumValue, typeof(int));
-
-            if (enumItem.Id < 1)
-                throw new Exception("Enum value must be positive number greater than zero. You may need to set an explicit enum value");
-
-            enumItem.Name = Enum.GetName(primaryEnumType, enumValue);
-
-            enumItem.Description = GetEnumDescription(enumValue);
-
-            //get a list of existing IDs
-            List<int> existingItemIds = context.Set<TData>().Select(x => x.Id).ToList();
-            if (!existingItemIds.Contains(enumItem.Id))
-            {
-                items.Add(enumItem);
-            }
+            //uncomment this line if you need to debug this code
+            //then choose yes and create a new instance of visual
+            //studio to step through the code
+            //Debugger.Launch();
         }
     }
-
-    public static string GetEnumDescription<TEnum>(TEnum enumItem)
-    {
-        Type type = enumItem.GetType();
-
-        var attribute = type.GetField(enumItem.ToString()).GetCustomAttributes(typeof(DescriptionAttribute), false).Cast<DescriptionAttribute>().FirstOrDefault();
-        return attribute == null ? string.Empty : attribute.Description;
-    }
-}
 ```
 
-Now we can add our DbSets to our DbContext and prepare to
-create the database.
+Note that we've added our DbSets to our DbContext.
+One for the employees and one for our DepartmentEnum.
 
 ```csharp
 
@@ -208,9 +195,9 @@ set a class file to launch.
 ![Launchclass](launchclass.png)
 
 The IDesignTimeDbContextFactory is our work-around
-for this problem and the ideal place to put our
-new seeding methods. I added a class called DbContextFactory.
-It inherits from IDesignTimeDbContextFactory
+for this problem. I added a class called DbContextFactory.
+It inherits from IDesignTimeDbContextFactory and has
+our connection string.
 
 ```csharp
 public ApplicationDbContext CreateDbContext(string[] args)
@@ -223,36 +210,79 @@ public ApplicationDbContext CreateDbContext(string[] args)
     //get the dbContext
     var context = new ApplicationDbContext(builder.Options);
 
-    //uncomment this line if you need to debug this code
-    //then choose yes and create a new instance of visual
-    //studio to step through the code
-    //Debugger.Launch();
-
-    //add in our enum data
-    EnumHelper.SeedEnumData<DepartmentEnum, Department>(context.Departments, context);
-
-    //save all of the enum changes
-    context.SaveChanges();
-
     return context;
 }
 ```
 
-The important line is:
-
-```csharp     
-//add in our enum
-EnumHelper.SeedEnumData<DepartmentEnum, Department>(context.Departments, context);
-```
- Which comes in the form of:
+Now it's time to add the code that brings this all together.
 
 ```csharp
-EnumHelper.SeedEnumData<ENUM_CLASS_NAME, ENUM>(context.ENUM, DBCONTEXT);
+private void TrySetProperty(object obj, string property, object value)
+{
+    var prop = obj.GetType().GetProperty(property, BindingFlags.Public | BindingFlags.Instance);
+    if (prop != null && prop.CanWrite)
+        prop.SetValue(obj, value, null);
+}
 ```
+
+
+```csharp
+public List<T> EnumToList<T>(Type enumToParse) where T : class
+{
+    Array enumValArray = Enum.GetValues(enumToParse);
+    List<T> enumList = new List<T>();
+
+    foreach (int val in enumValArray)
+    {
+        //create the object for the list
+        T  item = (T)Activator.CreateInstance<T>();
+
+        var id = val;
+        var name = Enum.GetName(typeof(Department), val);
+        var description = ((Department) val).GetDescription();
+
+        TrySetProperty(item, "Id", id);
+        TrySetProperty(item, "Name", name);
+        TrySetProperty(item, "Description", description);
+        TrySetProperty(item, "Deleted", false);
+
+        enumList.Add(item);
+    }
+
+    return enumList;
+}
+```
+
+
+```csharp
+public void SeedEnum<T>(Type enumToParse, ModelBuilder mb) where T : class
+{
+    List<T> enumObjectList = EnumToList<T>(enumToParse);
+
+    foreach (var item in enumObjectList)
+    {
+        mb.Entity<T>().HasData(item);
+    }
+}
+```
+
+And finally we add the line to our DbContext that will make the seeding work.
 We will need one of these lines for each enum we add to 
 the project. Once this line is added however, it should never
 be necessary to do anything but just change the actual enum
 code.
+
+The line is:
+```csharp
+//Seed Enums
+SeedEnum<DepartmentEnum>(typeof(Department), modelBuilder);
+```
+
+Which comes in the form of:
+```csharp
+//Seed Enums
+SeedEnum<ENUM_CLASS_NAME>(typeof(ENUM), modelBuilder);
+```
 
 At this point all we need to do is switch to the 
 service project in the package manager console and set 
