@@ -215,6 +215,9 @@ public ApplicationDbContext CreateDbContext(string[] args)
 ```
 
 Now it's time to add the code that brings this all together.
+Because we'll be creating a generic object for each enum
+we'll need a way to populate the properties without knowing which
+object we're populating.
 
 ```csharp
 private void TrySetProperty(object obj, string property, object value)
@@ -295,62 +298,20 @@ Next we'll call "update-database" twice.
 
 ![Update Database](update-database.bmp)
 
-The second call is necessary because the first time through
-it won't have created the new "Department" table.
-The second run will say it did nothing but it will populate
-the table with the values from the enum. 
-
 At this point we have the new Department table created and
-its polulated with the data from the enum.
-Now we can move on to the final problem: How do we get
-this data into our migrations script.
+its populated with the data from the enum.
 
-**Script-Migration**  
-One of the big advanteges of code first is that you can 
-generate a SQL script that can be used to update your
-actual database (staging, qa, production etc.). We
-do this by using the `script-migration` command.
-This script performs a check ahains the __EfMigrationsHistory
-table to determine if a migration needs to be applied.
-It's also pretty easy to flatten the migrations back out
-if you find yourself with too many. 
-Unfortunately none of the data that we just added will ever
-make it's way to anything but our local database.
-You could change your connection string and run 
-the `update-database` against another server, but I prefer
-to have all of my chnages scripted out. It makes it easy
-for any DBA to review and also makes it easy to hand
-off the responsibility for these changes.
+From this point forward adding an enum with a corresponding
+lookup table should be as easy as:
 
+1. Add the Enum
+2. Create the enum class which inherits from EnumBase
+3. Add a line in `OnModelCreating`
+4. Add-your migration
+5. update-databse
 
-![Enum Migration](enumMigration.bmp)
-
-
-
-There are a few gotchas to this approach: 
-
-- Runnning update-database twice when there is a new enum 
-is a bit goofy. Might be fixable if you can get the create table process to somehow 
-happen before the code that inserts the data.
-
-- Checking to see if the database/table exists by 
-using an exception is slow. Also may be fixed with a 
-little more research in how to do `if database exists` 
-and `if table exists` using something besides an exception.
-DbConext does provide a method for checking if the database 
-exists, but not a table (in a generic way) as far as I 
-can see. I stuck with the exception because it seemed to 
-be more universal despite being a bit slow.
-
-
-
-I do love code first and it solves one of the biggest biz-dev 
-headaches, namely keeping databases in sync between developers. 
-But it also somewhat promotes the idea that you have to know 
-much about the database or how it works. It is getting better,
-and many of the old school
-I do think that may be an acheiveable goal someday, but in 
-the meantime
+Modifying an enum should only require making your change to
+the enum and performing step 4 and 5.
 
 Finally, It's important to note that there are other ways
 to solve this problem. It really comes down to what you
@@ -362,7 +323,7 @@ find acceptable in your database.
 
 Each of these has similar challenges with value conversions 
 being prehaps the best alternative that requires little 
-cusomization -- Provided you don't mind storing the text 
+customization -- Provided you don't mind storing the text 
 values in the database.
 
 
