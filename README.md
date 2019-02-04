@@ -290,8 +290,7 @@ public static string GetEnumDescription<T>(string enumValue)
 And finally I add the line to our DbContext that will make the seeding work.
 You will need one of these lines for each enum you add to 
 the project. Once this line is added however, it should never
-be necessary to do anything but just change the actual enum
-code.
+be necessary to do anything but just change the actual enum.
 
 The line is:
 ```csharp
