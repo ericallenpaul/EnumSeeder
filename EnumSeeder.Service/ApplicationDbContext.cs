@@ -28,7 +28,8 @@ namespace EnumSeeder.Service
 
             //uncomment this line if you need to debug this code
             //then choose yes and create a new instance of visual
-            //studio to step through the code
+            //studio to step through the code. The debugger launches
+            //wherever this line is created
             //Debugger.Launch();
 
             //Seed Enums

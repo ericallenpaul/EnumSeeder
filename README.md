@@ -4,6 +4,9 @@ I don't care much for how it handles enums.
 Enums work just fine but if you're only looking at the 
 database they don't make much sense. 
 
+> Note: This example is in .Net Core, but should be easy to adapt
+> to any other version of .Net
+
 So an enum like the following:
 
 ```csharp
@@ -134,20 +137,22 @@ to have authenticated users.
 
 My AppUser class looks like this:
 
-    public class AppUser : IdentityUser
-    {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public virtual int AppUser_ID { get; set; }
+```csharp
+public class AppUser : IdentityUser
+{
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public virtual int AppUser_ID { get; set; }
 
-        [DisplayName("First Name")]
-        public virtual string FirstName { get; set; }
+    [DisplayName("First Name")]
+    public virtual string FirstName { get; set; }
 
-        [DisplayName("Last Name")]
-        public virtual string LastName { get; set; }
+    [DisplayName("Last Name")]
+    public virtual string LastName { get; set; }
 
-    }
+}
+```
 
-My I named my DbContext class `ApplicationDbContext` it looks
+I named my DbContext class `ApplicationDbContext` it looks
 like this:
 ```csharp
     public class ApplicationDbContext : IdentityDbContext<AppUser>
@@ -160,18 +165,19 @@ like this:
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //remove this line if you ise plain old DbContext
+            //remove this line if you use plain old DbContext
             base.OnModelCreating(modelBuilder);
 
             //uncomment this line if you need to debug this code
             //then choose yes and create a new instance of visual
-            //studio to step through the code
+            //studio to step through the code. The debugger launches
+            //wherever this line is created
             //Debugger.Launch();
         }
     }
 ```
 
-Note that we've added our DbSets to our DbContext.
+Note that I've added our DbSets to our DbContext.
 One for the employees and one for our DepartmentEnum.
 
 ```csharp
@@ -187,10 +193,9 @@ we'll also need a DbContextFactory. An IDesignTimeDbContextFactory
 class is necessary to get all of the migration commands
 to work with a class. In a default web api setup your
 models and DbContext would all be part of the same project.
-That project can be launched and can contain its own 
-connection string. The service class, however, can't
+That project can be launched and can contain settings with 
+a connection string. The service class, however, can't
 be launched and can't have its own connection string.
-
 The IDesignTimeDbContextFactory is our work-around
 for this problem. I added a class called DbContextFactory.
 It inherits from IDesignTimeDbContextFactory and has
@@ -213,8 +218,8 @@ public ApplicationDbContext CreateDbContext(string[] args)
 
 Now it's time to add the code that brings this all together.
 Because we'll be creating a generic object for each enum
-we'll need a way to populate the properties without knowing which
-object we're populating.
+we'll need a way to populate the properties of an object 
+without knowing what object we're populating.
 
 ```csharp
 private void TrySetProperty(object obj, string property, object value)
@@ -226,7 +231,8 @@ private void TrySetProperty(object obj, string property, object value)
 ```
 
 Now we need a class that we can use to convert an individual Enum to its
-values. I created a class that looks like this:
+values. This will help with retrieving the description.
+I created a class that looks like this:
 
 ```csharp
 public class EnumDescription
@@ -281,8 +287,8 @@ public static string GetEnumDescription<T>(string enumValue)
 }
 ```
 
-And finally we add the line to our DbContext that will make the seeding work.
-We will need one of these lines for each enum we add to 
+And finally I add the line to our DbContext that will make the seeding work.
+You will need one of these lines for each enum you add to 
 the project. Once this line is added however, it should never
 be necessary to do anything but just change the actual enum
 code.
@@ -310,7 +316,7 @@ gets populated with values.
 
 ![Successful Migration](SuccessfulMigration.bmp)
 
-Next we can call "update-database".
+Now I can call "update-database".
 
 ![Update Database](update-database.bmp)
 
@@ -337,8 +343,8 @@ lookup table should be as easy as:
 1. Add the Enum
 2. Create the enum class which inherits from EnumBase
 3. Add a "seed" line in `OnModelCreating` method of your DbContext
-4. Add-your migration
-5. update-databse
+4. Add your migration (`add-migration`)
+5. Update the databse (`update-database`)
 
 Modifying an enum should only require making your change to
 the enum and performing step 4 and 5.
@@ -355,5 +361,14 @@ Each of these has similar challenges with value conversions
 being prehaps the best alternative that requires little 
 customization -- Provided you don't mind storing the text 
 values in the database.
+
+What else could be done? You'll probably notice that I 
+also have a "Deleted" property that isn't really being handled
+by migrations. So the last peice of the puzzle would be to
+write a custom attribute that will allow me to flag the
+property in the same way that we use the "Description"
+attribute and then add code to extract that value as well.
+I just ran out of time to get this last item done :)
+
 
 
