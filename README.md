@@ -20,9 +20,9 @@ constantly refrencing the enum code to figure out what
 a status of 2 means in the "jobs" table.
 
 In a more traditonal (old style) database we would have 
-had a lookup table called Department with Id and Name columns. 
+had a lookup table called JobStatus with Id and Name columns. 
 This table could easily be joined to the jobs table 
-so we could displaye the human readable names of 
+so we could display the human readable names of 
 "New", "InProgress", and "OnHold" instead of 0, 1 and 2.
 
 You could manually create and populate the table using a 
@@ -31,7 +31,8 @@ enum needs to change you will likely have more than one place
 to change the code.
 
 Fortunately with just a little bit of code you can create
-and populate a look up table that corresponds to the enum. 
+and populate a look up table that corresponds to the enum 
+and have it work with code first migrations. 
 
 So let's walk through it.
 I have 3 projects in my example, a Web API project, a models 
@@ -83,7 +84,7 @@ public class Employee : IEmployee
 You should note that we are using a description attribute and
 we are explicitly setting a value for each enum.
 This is important because these values will become the 
-IDs in the lookup table.
+description in the lookup table and values that are more "UI friendly".
 
 Next, in the models project we'll add a base class for all of the enums to inhereit from:
 
@@ -189,10 +190,6 @@ models and DbContext would all be part of the same project.
 That project can be launched and can contain its own 
 connection string. The service class, however, can't
 be launched and can't have its own connection string.
-You may have seen this error before when you accidentally
-set a class file to launch.
-
-![Launchclass](launchclass.png)
 
 The IDesignTimeDbContextFactory is our work-around
 for this problem. I added a class called DbContextFactory.
@@ -228,44 +225,59 @@ private void TrySetProperty(object obj, string property, object value)
 }
 ```
 
+Now we need a class that we can use to convert an individual Enum to its
+values. I created a class that looks like this:
 
 ```csharp
-public List<T> EnumToList<T>(Type enumToParse) where T : class
+public class EnumDescription
 {
-    Array enumValArray = Enum.GetValues(enumToParse);
-    List<T> enumList = new List<T>();
-
-    foreach (int val in enumValArray)
-    {
-        //create the object for the list
-        T  item = (T)Activator.CreateInstance<T>();
-
-        var id = val;
-        var name = Enum.GetName(typeof(Department), val);
-        var description = ((Department) val).GetDescription();
-
-        TrySetProperty(item, "Id", id);
-        TrySetProperty(item, "Name", name);
-        TrySetProperty(item, "Description", description);
-        TrySetProperty(item, "Deleted", false);
-
-        enumList.Add(item);
-    }
-
-    return enumList;
+    public int Key { get; set; }
+    public string Value { get; set; }
 }
 ```
 
+Now we need some code to allow us to extract all 3 
+components (Id, Name and Description). I added this code directly to
+my `ApplicationDbContext` class.
+
 
 ```csharp
-public void SeedEnum<T>(Type enumToParse, ModelBuilder mb) where T : class
+public static KeyValuePair<string, List<EnumDescription>> ConvertEnumWithDescription<T>() where T : struct, IConvertible
 {
-    List<T> enumObjectList = EnumToList<T>(enumToParse);
-
-    foreach (var item in enumObjectList)
+    if (!typeof(T).IsEnum)
     {
-        mb.Entity<T>().HasData(item);
+        throw new Exception("Type given T must be an Enum");
     }
+
+    var enumType = typeof(T).ToString().Split('.').Last();
+    var type = typeof(T);
+
+    var itemsList = Enum.GetValues(typeof(T))
+        .Cast<T>()
+        .Select(x => new EnumDescription
+        {
+            Key = Convert.ToInt32(x),
+            Value = GetEnumDescription<T>(Enum.GetName(typeof(T), x))
+        })
+        .ToList();
+
+    var res = new KeyValuePair<string, List<EnumDescription>>(
+        enumType, itemsList);
+    return res;
+
+}
+
+public static string GetEnumDescription<T>(string enumValue)
+{
+    var value = Enum.Parse(typeof(T), enumValue);
+    FieldInfo fi = value.GetType().GetField(value.ToString());
+
+    DescriptionAttribute[] attributes =
+        (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
+
+    if (attributes.Length > 0)
+        return attributes[0].Description;
+    return value.ToString();
 }
 ```
 
@@ -278,35 +290,53 @@ code.
 The line is:
 ```csharp
 //Seed Enums
-SeedEnum<DepartmentEnum>(typeof(Department), modelBuilder);
+SeedEnum<DepartmentEnum,Department>(modelBuilder);
 ```
 
 Which comes in the form of:
 ```csharp
 //Seed Enums
-SeedEnum<ENUM_CLASS_NAME>(typeof(ENUM), modelBuilder);
+SeedEnum<ENUM_CLASS_NAME,ENUM>(modelBuilder);
 ```
 
 At this point all we need to do is switch to the 
-service project in the package manager console and set 
-the service project as the startup project. 
-Now we can add our initial migration.
+service project in the package manager console and
+add our migration. 
 
 ![Add Migration](add_migration.bmp)
 
-Next we'll call "update-database" twice.
+The migration produced will include instructions to make sure our "lookup" table
+gets populated with values.
+
+![Successful Migration](SuccessfulMigration.bmp)
+
+Next we can call "update-database".
 
 ![Update Database](update-database.bmp)
 
 At this point we have the new Department table created and
 its populated with the data from the enum.
 
+![Department Data](DepartmentData.bmp)
+
+Now we can write a query like this:
+
+```sql
+SELECT 
+	e.FirstName, 
+	e.LastName, 
+	e.Department,
+	d.Description as [DepartmentName] 
+FROM Employees e
+INNER JOIN Department d on d.Id = e.Department
+```
+
 From this point forward adding an enum with a corresponding
 lookup table should be as easy as:
 
 1. Add the Enum
 2. Create the enum class which inherits from EnumBase
-3. Add a line in `OnModelCreating`
+3. Add a "seed" line in `OnModelCreating` method of your DbContext
 4. Add-your migration
 5. update-databse
 
