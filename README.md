@@ -304,7 +304,7 @@ Which comes in the form of:
 SeedEnum<ENUM_CLASS_NAME,ENUM>(modelBuilder);
 ```
 
-At this point all we need to do is switch to the 
+All we need to do is switch to the 
 service project in the package manager console and
 add our migration. 
 
