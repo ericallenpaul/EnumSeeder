@@ -341,6 +341,7 @@ lookup table should be as easy as:
 
 1. Add the Enum
 2. Create the enum class which inherits from EnumBase
+3. Add a `DbSet` for the Enum class
 3. Add a "seed" line in `OnModelCreating` method of your DbContext
 4. Add your migration (`add-migration`)
 5. Update the databse (`update-database`)
